@@ -323,6 +323,11 @@ tbody tr:nth-child(odd) {
   animation: drawOverlayIn 0.4s ease-out;
 }
 
+/* 戻る/閉じるで非表示にするとき、flex より none を優先する */
+.draw-overlay.hidden {
+  display: none !important;
+}
+
 @keyframes drawOverlayIn {
   from {
     opacity: 0;
