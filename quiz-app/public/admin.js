@@ -410,6 +410,7 @@ function closeDrawOverlay() {
   document.getElementById('draw-phase-candidates').classList.remove('hidden');
   document.getElementById('draw-phase-roulette').classList.add('hidden');
   document.getElementById('draw-phase-winner').classList.add('hidden');
+  document.getElementById('draw-btn').disabled = false;
   lastDrawData = null;
 }
 
@@ -418,6 +419,10 @@ function drawRoulette() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 抽選オーバーレイは初期表示時は非表示にしておく
+  const overlay = document.getElementById('draw-overlay');
+  if (overlay) overlay.classList.add('hidden');
+
   document.getElementById('add-option-btn').addEventListener('click', () => {
     const container = document.getElementById('options-container');
     container.appendChild(createOptionRow(''));
@@ -429,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reload-correct-btn').addEventListener('click', loadCorrect);
   document.getElementById('draw-btn').addEventListener('click', revealAndDraw);
 
+  document.getElementById('draw-back-btn').addEventListener('click', closeDrawOverlay);
   document.getElementById('draw-start-btn').addEventListener('click', startDrawRouletteAnimation);
   document.getElementById('draw-close-btn').addEventListener('click', closeDrawOverlay);
 

@@ -396,6 +396,14 @@ tbody tr:nth-child(odd) {
   min-width: 80px;
 }
 
+.draw-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
 .draw-cta {
   font-size: 1.1rem;
   padding: 14px 32px;
