@@ -216,8 +216,9 @@ function renderTableCount(responses) {
 
   const byTable = {};
   responses.forEach(r => {
-    const t = (r.tableNumber != null ? String(r.tableNumber).trim() : '') || '（未入力）';
-    byTable[t] = (byTable[t] || 0) + 1;
+    const raw = (r.tableNumber != null ? String(r.tableNumber).trim() : '') || '（未入力）';
+    const key = raw === '（未入力）' ? raw : raw.toLowerCase();
+    byTable[key] = (byTable[key] || 0) + 1;
   });
 
   const entries = Object.entries(byTable).sort((a, b) =>
@@ -234,13 +235,14 @@ function renderTableCount(responses) {
 
   const maxCount = Math.max(...entries.map(e => e[1]), 1);
 
-  entries.forEach(([tableName, count]) => {
+  entries.forEach(([tableKey, count]) => {
+    const displayName = tableKey === '（未入力）' ? tableKey : tableKey;
     const row = document.createElement('div');
     row.className = 'summary-row';
 
     const label = document.createElement('div');
     label.className = 'summary-label';
-    label.textContent = `テーブル${tableName}`;
+    label.textContent = tableKey === '（未入力）' ? tableKey : `テーブル${displayName}`;
 
     const barOuter = document.createElement('div');
     barOuter.className = 'summary-bar-outer';
@@ -260,7 +262,9 @@ function renderTableCount(responses) {
     chartContainer.appendChild(row);
 
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>テーブル${escapeHtml(tableName)}</td><td>${count}人</td>`;
+    tr.innerHTML = tableKey === '（未入力）'
+      ? `<td>${escapeHtml(tableKey)}</td><td>${count}人</td>`
+      : `<td>テーブル${escapeHtml(displayName)}</td><td>${count}人</td>`;
     tbody.appendChild(tr);
   });
 }

@@ -154,6 +154,7 @@ app.post('/api/config', requireAdminApi, asyncHandler(async (req, res) => {
 }));
 
 // 利用者用：クイズ取得（1アクセス1回答用にクライアントトークンを付与）
+// ※ quiz_client_token は cookieOptions で統一し、他セッション（admin_session 等）を上書きしない
 app.get('/api/quiz', requireQuizApi, asyncHandler(async (req, res) => {
   const quizConfig = await store.getConfig();
   const { title, question, options } = quizConfig;
@@ -163,7 +164,7 @@ app.get('/api/quiz', requireQuizApi, asyncHandler(async (req, res) => {
   const cookies = parseCookies(req);
   if (!cookies.quiz_client_token) {
     const token = crypto.randomBytes(24).toString('hex');
-    res.cookie('quiz_client_token', token, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 });
+    res.cookie('quiz_client_token', token, cookieOptions('quiz'));
   }
   res.json({ title, question, options });
 }));
