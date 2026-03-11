@@ -216,9 +216,6 @@ async function loadResponses() {
     if (!res.ok) throw new Error();
     const data = await res.json();
 
-    // 棒グラフの描画
-    renderSummary(currentOptions, data);
-
     data.forEach(row => {
       const tr = document.createElement('tr');
       tr.innerHTML = `

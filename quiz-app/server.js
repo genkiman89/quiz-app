@@ -113,9 +113,12 @@ app.post('/api/quiz-login', (req, res) => {
   res.json({ ok: true });
 });
 
-// 管理画面は認証後に表示（/admin.html を静的より先に処理）
+// 管理画面・集計画面は認証後に表示（静的より先に処理）
 app.get('/admin.html', requireAdminPage, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/summary.html', requireAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'summary.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));

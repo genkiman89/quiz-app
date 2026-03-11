@@ -187,6 +187,16 @@ button:not(:disabled):hover {
   color: #facc15;
 }
 
+.link-back {
+  color: #38bdf8;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.link-back:hover {
+  text-decoration: underline;
+}
+
 .hidden {
   display: none;
 }

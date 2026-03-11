@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>選択肢ごとの集計</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>選択肢ごとの集計</h1>
+        <p class="subtitle">回答状況の集計を確認できます。</p>
+        <p>
+          <a href="/admin.html" class="link-back">← 管理画面に戻る</a>
+        </p>
+      </header>
+
+      <section class="card">
+        <h2>選択肢ごとの集計</h2>
+        <button id="reload-summary-btn" class="secondary small">再読み込み</button>
+        <div id="summary-chart" class="summary-chart"></div>
+      </section>
+
+      <section class="card">
+        <h2>テーブルごとの回答者数</h2>
+        <div id="table-count-chart" class="summary-chart"></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>テーブル</th>
+                <th>回答者数</th>
+              </tr>
+            </thead>
+            <tbody id="table-count-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <script src="summary.js"></script>
+  </body>
+</html>
