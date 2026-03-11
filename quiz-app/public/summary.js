@@ -5,7 +5,7 @@
     container.innerHTML = '';
     var wrap = document.createElement('div');
     wrap.className = 'message error';
-    wrap.innerHTML = 'セッションが切れました。<a href="/admin.html" class="link-back">管理画面に戻る</a> / <a href="/admin-login.html" class="link-back">ログインし直す</a>';
+    wrap.innerHTML = 'セッションが切れました。<a href="/admin.html" class="link-back">管理画面に戻る</a> / <a href="/admin-login.html?from=%2Fsummary.html" class="link-back">ログインし直す</a>（ログイン後はこの集計ページに戻ります）';
     container.appendChild(wrap);
   }
 

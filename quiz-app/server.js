@@ -60,12 +60,13 @@ function requireAdminApi(req, res, next) {
   res.status(401).json({ error: 'ログインが必要です。' });
 }
 
-// 管理者認証（ページ用: ログイン画面へリダイレクト）
+// 管理者認証（ページ用: ログイン画面へリダイレクト。from= で元のURLを渡し、ログイン後に戻れるようにする）
 function requireAdminPage(req, res, next) {
   if (!ADMIN_PASSWORD) return next();
   const cookies = parseCookies(req);
   if (verifySignedCookie(cookies.admin_session, ADMIN_PASSWORD)) return next();
-  res.redirect(302, '/admin-login.html');
+  const from = encodeURIComponent(req.originalUrl || '/admin.html');
+  res.redirect(302, '/admin-login.html?from=' + from);
 }
 
 // 回答サイト認証（API用: 401）

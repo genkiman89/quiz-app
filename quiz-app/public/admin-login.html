@@ -11,6 +11,7 @@
       <header>
         <h1>クイズ管理</h1>
         <p class="subtitle">管理画面にログインしてください。</p>
+        <p class="form-hint">集計だけ見る場合は <a href="/admin-login.html?from=%2Fsummary.html" class="link-back">集計ページ用ログイン</a>（ログイン後に選択肢ごとの集計へ移動します）</p>
       </header>
 
       <section class="card">
@@ -49,7 +50,10 @@
           messageEl.classList.add('error');
           return;
         }
-        window.location.href = '/admin.html';
+        const params = new URLSearchParams(window.location.search);
+        const from = params.get('from');
+        const allowed = from && /^\/(summary\.html|admin\.html)(\?|$)/.test(decodeURIComponent(from));
+        window.location.href = allowed ? decodeURIComponent(from) : '/admin.html';
       });
     </script>
   </body>
