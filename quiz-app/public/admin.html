@@ -45,7 +45,7 @@
       <section class="card">
         <h2>回答一覧</h2>
         <p>
-          <a href="/summary.html" class="link-back">選択肢ごとの集計・テーブル別集計を見る →</a>
+          <a href="/summary.html" class="link-back">選択肢ごとの集計を見る →</a>
         </p>
         <button id="reload-responses-btn" class="secondary small">再読み込み</button>
         <div class="table-wrapper">
@@ -60,6 +60,22 @@
               </tr>
             </thead>
             <tbody id="responses-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>テーブル別集計</h2>
+        <div id="table-count-chart" class="summary-chart"></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>テーブル</th>
+                <th>回答者数</th>
+              </tr>
+            </thead>
+            <tbody id="table-count-body"></tbody>
           </table>
         </div>
       </section>

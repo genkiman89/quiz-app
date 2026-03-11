@@ -206,6 +206,65 @@ function renderSummary(options, responses) {
   });
 }
 
+function renderTableCount(responses) {
+  const chartContainer = document.getElementById('table-count-chart');
+  const tbody = document.getElementById('table-count-body');
+  if (!chartContainer || !tbody) return;
+
+  chartContainer.innerHTML = '';
+  tbody.innerHTML = '';
+
+  const byTable = {};
+  responses.forEach(r => {
+    const t = (r.tableNumber != null ? String(r.tableNumber).trim() : '') || '（未入力）';
+    byTable[t] = (byTable[t] || 0) + 1;
+  });
+
+  const entries = Object.entries(byTable).sort((a, b) =>
+    String(a[0]).localeCompare(String(b[0]), undefined, { numeric: true })
+  );
+
+  if (entries.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'message';
+    p.textContent = 'まだ回答がありません。';
+    chartContainer.appendChild(p);
+    return;
+  }
+
+  const maxCount = Math.max(...entries.map(e => e[1]), 1);
+
+  entries.forEach(([tableName, count]) => {
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+
+    const label = document.createElement('div');
+    label.className = 'summary-label';
+    label.textContent = `テーブル${tableName}`;
+
+    const barOuter = document.createElement('div');
+    barOuter.className = 'summary-bar-outer';
+
+    const barInner = document.createElement('div');
+    barInner.className = 'summary-bar-inner';
+    barInner.style.width = `${(count / maxCount) * 100}%`;
+    barOuter.appendChild(barInner);
+
+    const countEl = document.createElement('div');
+    countEl.className = 'summary-count';
+    countEl.textContent = `${count}人`;
+
+    row.appendChild(label);
+    row.appendChild(barOuter);
+    row.appendChild(countEl);
+    chartContainer.appendChild(row);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>テーブル${escapeHtml(tableName)}</td><td>${count}人</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 async function loadResponses() {
   const tbody = document.getElementById('responses-body');
   tbody.innerHTML = '';
@@ -231,6 +290,8 @@ async function loadResponses() {
       `;
       tbody.appendChild(tr);
     });
+
+    renderTableCount(data);
   } catch {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
