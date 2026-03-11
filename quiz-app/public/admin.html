@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>クイズ管理画面</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>クイズ管理</h1>
+        <p class="subtitle">問題編集・回答状況の確認・抽選を行います。</p>
+      </header>
+
+      <section class="card">
+        <h2>クイズ設定</h2>
+        <div class="form-row">
+          <label for="admin-title">タイトル</label>
+          <input id="admin-title" type="text" placeholder="例: 本日の大抽選会クイズ" />
+        </div>
+        <div class="form-row">
+          <label for="admin-question">問題文</label>
+          <textarea id="admin-question" rows="3" placeholder="問題文を入力してください"></textarea>
+        </div>
+        <div class="form-row">
+          <label>選択肢</label>
+          <div id="options-container"></div>
+          <button id="add-option-btn" class="secondary small">選択肢を追加</button>
+        </div>
+        <div class="form-row">
+          <label for="admin-correct">正解の選択肢</label>
+          <select id="admin-correct"></select>
+        </div>
+        <div class="form-row checkbox-row">
+          <label>
+            <input type="checkbox" id="reset-responses" />
+            回答履歴をリセットする
+          </label>
+        </div>
+        <button id="save-config-btn" class="primary">設定を保存</button>
+        <p id="config-message" class="message"></p>
+      </section>
+
+      <section class="card">
+        <h2>選択肢ごとの集計 ＆ 回答一覧</h2>
+        <button id="reload-responses-btn" class="secondary small">再読み込み</button>
+        <div id="summary-chart" class="summary-chart"></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>テーブル</th>
+                <th>名前</th>
+                <th>回答</th>
+                <th>正解</th>
+                <th>回答時刻</th>
+              </tr>
+            </thead>
+            <tbody id="responses-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>正解発表 ＆ 抽選</h2>
+        <button id="reload-correct-btn" class="secondary small">正解者を再読み込み</button>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>テーブル</th>
+                <th>名前</th>
+              </tr>
+            </thead>
+            <tbody id="correct-body"></tbody>
+          </table>
+        </div>
+
+        <div class="roulette-section">
+          <button id="draw-btn" class="primary">正解を確定して抽選を開始</button>
+          <div id="roulette-display" class="roulette-display">抽選待機中</div>
+          <p id="winner-message" class="message highlight"></p>
+        </div>
+      </section>
+    </div>
+
+    <script src="admin.js"></script>
+  </body>
+  </html>
+

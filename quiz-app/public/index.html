@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>クイズ回答ページ</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="page-loading" class="container">読み込み中...</div>
+    <div id="password-gate" class="container hidden">
+      <header>
+        <h1>クイズに参加する</h1>
+        <p class="subtitle">パスワードを入力してください。</p>
+      </header>
+      <section class="card">
+        <form id="quiz-login-form">
+          <div class="form-row">
+            <label for="quiz-password">パスワード</label>
+            <input id="quiz-password" type="password" placeholder="参加用パスワードを入力" autocomplete="current-password" />
+          </div>
+          <button type="submit" class="primary">入室する</button>
+          <p id="quiz-login-message" class="message"></p>
+        </form>
+      </section>
+    </div>
+
+    <div id="quiz-container" class="container hidden">
+      <header>
+        <h1 id="quiz-title">クイズ</h1>
+        <p class="subtitle">テーブル番号とお名前を入力してクイズに回答してください。</p>
+      </header>
+
+      <section class="card">
+        <div class="form-row">
+          <label for="tableNumber">テーブル番号</label>
+          <input id="tableNumber" type="text" placeholder="例: 5" />
+        </div>
+        <div class="form-row">
+          <label for="name">お名前</label>
+          <input id="name" type="text" placeholder="例: 山田太郎" />
+        </div>
+      </section>
+
+      <section class="card" id="quiz-section">
+        <div id="quiz-loading">クイズを読み込み中...</div>
+        <div id="quiz-content" class="hidden">
+          <p id="question" class="question"></p>
+          <div id="options" class="options"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <button id="submitBtn" class="primary" disabled>回答を送信する</button>
+        <p id="result-message" class="message"></p>
+      </section>
+    </div>
+    <script src="user.js"></script>
+    <script>
+      (function () {
+        var gate = document.getElementById('password-gate');
+        var quiz = document.getElementById('quiz-container');
+        if (!gate || !quiz) return;
+
+        var loading = document.getElementById('page-loading');
+        function hideLoading() {
+          if (loading) loading.classList.add('hidden');
+        }
+        function showGate() {
+          hideLoading();
+          gate.classList.remove('hidden');
+          quiz.classList.add('hidden');
+        }
+        function showQuiz() {
+          hideLoading();
+          gate.classList.add('hidden');
+          quiz.classList.remove('hidden');
+        }
+
+        document.getElementById('quiz-login-form').addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var input = document.getElementById('quiz-password');
+          var msg = document.getElementById('quiz-login-message');
+          msg.textContent = '';
+          msg.classList.remove('error', 'highlight');
+          var res = await fetch('/api/quiz-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: input.value })
+          });
+          var data = await res.json();
+          if (!res.ok) {
+            msg.textContent = data.error || 'パスワードが違います。';
+            msg.classList.add('error');
+            return;
+          }
+          showQuiz();
+          if (typeof fetchQuiz === 'function') fetchQuiz();
+        });
+
+        fetch('/api/quiz', { credentials: 'include' })
+          .then(function (r) {
+            if (r.status === 401) showGate();
+            else {
+              showQuiz();
+              setTimeout(function () {
+                if (typeof fetchQuiz === 'function') fetchQuiz();
+              }, 0);
+            }
+          })
+          .catch(function () { showGate(); });
+      })();
+    </script>
+  </body>
+  </html>
+

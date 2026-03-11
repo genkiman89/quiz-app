@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>管理画面ログイン</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>クイズ管理</h1>
+        <p class="subtitle">管理画面にログインしてください。</p>
+      </header>
+
+      <section class="card">
+        <form id="login-form">
+          <div class="form-row">
+            <label for="admin-password">パスワード</label>
+            <input
+              id="admin-password"
+              type="password"
+              placeholder="管理用パスワードを入力"
+              autocomplete="current-password"
+            />
+          </div>
+          <button type="submit" class="primary">ログイン</button>
+          <p id="login-message" class="message"></p>
+        </form>
+      </section>
+    </div>
+    <script>
+      document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('admin-password');
+        const messageEl = document.getElementById('login-message');
+        messageEl.textContent = '';
+        messageEl.classList.remove('error', 'highlight');
+
+        const res = await fetch('/api/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: input.value })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          messageEl.textContent = data.error || 'ログインに失敗しました。';
+          messageEl.classList.add('error');
+          return;
+        }
+        window.location.href = '/admin.html';
+      });
+    </script>
+  </body>
+</html>

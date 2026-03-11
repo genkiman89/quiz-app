@@ -1,0 +1,21 @@
+# 依存パッケージ（clone 後に npm install で再生成）
+node_modules/
+
+# ローカルで保存するデータ（MongoDB を使う場合は不要）
+quiz-app/data/
+data/
+
+# 環境変数（パスワードなどを書く場合。Git に含めない）
+.env
+.env.local
+.env.*.local
+
+# OS やエディタの一時ファイル
+.DS_Store
+Thumbs.db
+*.log
+.cursor/
+
+# ビルド成果物（本プロジェクトでは未使用）
+dist/
+build/
