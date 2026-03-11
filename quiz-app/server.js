@@ -150,18 +150,29 @@ app.post('/api/config', requireAdminApi, asyncHandler(async (req, res) => {
   res.json({ ok: true, config: nextConfig });
 }));
 
-// 利用者用：クイズ取得
+// 利用者用：クイズ取得（1アクセス1回答用にクライアントトークンを付与）
 app.get('/api/quiz', requireQuizApi, asyncHandler(async (req, res) => {
   const quizConfig = await store.getConfig();
   const { title, question, options } = quizConfig;
   if (!question || options.length < 2) {
     return res.status(503).json({ error: '現在有効なクイズが設定されていません。' });
   }
+  const cookies = parseCookies(req);
+  if (!cookies.quiz_client_token) {
+    const token = crypto.randomBytes(24).toString('hex');
+    res.cookie('quiz_client_token', token, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 });
+  }
   res.json({ title, question, options });
 }));
 
-// 利用者用：回答送信
+// 利用者用：回答送信（1アクセス1回まで。quiz_client_token で同一ブラウザを判定）
 app.post('/api/answer', requireQuizApi, asyncHandler(async (req, res) => {
+  const cookies = parseCookies(req);
+  const clientToken = cookies.quiz_client_token;
+  if (!clientToken) {
+    return res.status(400).json({ error: 'このページからもう一度クイズを読み込んでから回答してください。' });
+  }
+
   const { tableNumber, name, answerIndex } = req.body || {};
 
   if (!tableNumber || !name) {
@@ -179,15 +190,13 @@ app.post('/api/answer', requireQuizApi, asyncHandler(async (req, res) => {
   }
 
   const responses = await store.getResponses();
-  const exists = responses.find(
-    r => r.tableNumber === normalizedTable && r.name === normalizedName
-  );
-  if (exists) {
+  const alreadyAnswered = responses.find(r => r.clientToken === clientToken);
+  if (alreadyAnswered) {
     return res.json({
       ok: true,
       duplicated: true,
-      answerIndex: exists.answerIndex,
-      message: 'すでに回答済みです（最初の回答のみ有効）。'
+      answerIndex: alreadyAnswered.answerIndex,
+      message: 'この端末ではすでに回答済みです。1回のみ回答できます。'
     });
   }
 
@@ -195,6 +204,7 @@ app.post('/api/answer', requireQuizApi, asyncHandler(async (req, res) => {
     tableNumber: normalizedTable,
     name: normalizedName,
     answerIndex,
+    clientToken,
     createdAt: new Date().toISOString()
   };
   await store.addResponse(record);
@@ -202,10 +212,11 @@ app.post('/api/answer', requireQuizApi, asyncHandler(async (req, res) => {
   res.json({ ok: true, answerIndex });
 }));
 
-// 管理者用：全回答取得
+// 管理者用：全回答取得（clientToken は返さない）
 app.get('/api/responses', requireAdminApi, asyncHandler(async (req, res) => {
   const responses = await store.getResponses();
-  res.json(responses);
+  const safe = responses.map(({ clientToken, ...r }) => r);
+  res.json(safe);
 }));
 
 // 管理者用：正解者一覧

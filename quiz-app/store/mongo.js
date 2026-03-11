@@ -19,6 +19,7 @@ const responseSchema = new mongoose.Schema(
     tableNumber: String,
     name: String,
     answerIndex: Number,
+    clientToken: String,
     createdAt: { type: Date, default: Date.now }
   },
   { _id: true }
@@ -80,6 +81,7 @@ async function getResponses() {
     tableNumber: r.tableNumber,
     name: r.name,
     answerIndex: r.answerIndex,
+    clientToken: r.clientToken || null,
     createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : null
   }));
 }
@@ -90,6 +92,7 @@ async function addResponse(record) {
     tableNumber: record.tableNumber,
     name: record.name,
     answerIndex: record.answerIndex,
+    clientToken: record.clientToken || null,
     createdAt: record.createdAt ? new Date(record.createdAt) : new Date()
   });
 }

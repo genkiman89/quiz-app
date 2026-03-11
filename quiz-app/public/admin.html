@@ -85,6 +85,27 @@
       </section>
     </div>
 
+    <!-- 抽選フルスクリーン演出 -->
+    <div id="draw-overlay" class="draw-overlay hidden">
+      <div class="draw-overlay-inner">
+        <div id="draw-phase-candidates" class="draw-phase">
+          <h2 class="draw-title">正解者</h2>
+          <p class="draw-subtitle">この中から当選者を抽選します</p>
+          <ul id="draw-candidates-list" class="draw-candidates-list"></ul>
+          <button type="button" id="draw-start-btn" class="primary draw-cta">抽選を開始</button>
+        </div>
+        <div id="draw-phase-roulette" class="draw-phase hidden">
+          <p class="draw-roulette-label">抽選中...</p>
+          <div id="draw-roulette-name" class="draw-roulette-name"></div>
+        </div>
+        <div id="draw-phase-winner" class="draw-phase hidden">
+          <p class="draw-winner-label">当選者</p>
+          <div id="draw-winner-name" class="draw-winner-name"></div>
+          <button type="button" id="draw-close-btn" class="primary draw-cta">閉じる</button>
+        </div>
+      </div>
+    </div>
+
     <script src="admin.js"></script>
   </body>
   </html>

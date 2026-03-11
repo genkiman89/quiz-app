@@ -12,6 +12,7 @@
       <header>
         <h1>クイズに参加する</h1>
         <p class="subtitle">パスワードを入力してください。</p>
+        <p class="form-hint">参加用URLに <code>?p=パスワード</code> を含めると自動で入室できます（例: /?p=abc123）</p>
       </header>
       <section class="card">
         <form id="quiz-login-form">
@@ -34,7 +35,8 @@
       <section class="card">
         <div class="form-row">
           <label for="tableNumber">テーブル番号</label>
-          <input id="tableNumber" type="text" placeholder="例: 5" />
+          <input id="tableNumber" type="text" placeholder="例: A" />
+          <span class="form-hint">A, B, C … のいずれかを入力</span>
         </div>
         <div class="form-row">
           <label for="name">お名前</label>
@@ -77,6 +79,17 @@
           quiz.classList.remove('hidden');
         }
 
+        function getPasswordFromUrl() {
+          var params = new URLSearchParams(window.location.search);
+          return params.get('p') || params.get('password') || '';
+        }
+        function removePasswordFromUrl() {
+          var url = new URL(window.location.href);
+          url.searchParams.delete('p');
+          url.searchParams.delete('password');
+          window.history.replaceState({}, '', url.pathname + url.search);
+        }
+
         document.getElementById('quiz-login-form').addEventListener('submit', async function (e) {
           e.preventDefault();
           var input = document.getElementById('quiz-password');
@@ -98,10 +111,27 @@
           if (typeof fetchQuiz === 'function') fetchQuiz();
         });
 
+        async function tryLoginWithUrlPassword() {
+          var password = getPasswordFromUrl();
+          if (!password) return false;
+          var res = await fetch('/api/quiz-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: password })
+          });
+          if (!res.ok) return false;
+          removePasswordFromUrl();
+          showQuiz();
+          if (typeof fetchQuiz === 'function') fetchQuiz();
+          return true;
+        }
+
         fetch('/api/quiz', { credentials: 'include' })
-          .then(function (r) {
-            if (r.status === 401) showGate();
-            else {
+          .then(async function (r) {
+            if (r.status === 401) {
+              var loggedIn = await tryLoginWithUrlPassword();
+              if (!loggedIn) showGate();
+            } else {
               showQuiz();
               setTimeout(function () {
                 if (typeof fetchQuiz === 'function') fetchQuiz();

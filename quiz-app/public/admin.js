@@ -280,9 +280,12 @@ async function loadCorrect() {
   }
 }
 
+let lastDrawData = null; // 抽選結果（候補一覧・当選者インデックス）を保持
+
 async function revealAndDraw() {
   const correctSelect = document.getElementById('admin-correct');
   const winnerMessage = document.getElementById('winner-message');
+  const overlay = document.getElementById('draw-overlay');
 
   winnerMessage.textContent = '';
   winnerMessage.classList.remove('error', 'highlight');
@@ -290,7 +293,6 @@ async function revealAndDraw() {
   const correctIndex = Number(correctSelect.value ?? 0);
 
   try {
-    // 正解の選択肢を確定
     const resSet = await fetch('/api/set-correct', {
       method: 'POST',
       credentials: 'include',
@@ -304,85 +306,115 @@ async function revealAndDraw() {
       return;
     }
 
-    // 正解者一覧を更新
     await loadCorrect();
 
-    // 抽選開始
-    await drawRoulette();
+    const res = await fetch('/api/draw', { method: 'POST', credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) {
+      winnerMessage.textContent = data.error || '正解者がいない可能性があります。';
+      winnerMessage.classList.add('error');
+      return;
+    }
+
+    const candidates = data.candidates || [];
+    const winnerIndex = data.winnerIndex ?? 0;
+    if (!candidates.length) {
+      winnerMessage.textContent = '正解者がいません。';
+      winnerMessage.classList.add('error');
+      return;
+    }
+
+    lastDrawData = { candidates, winnerIndex };
+    document.getElementById('draw-btn').disabled = true;
+
+    const listEl = document.getElementById('draw-candidates-list');
+    listEl.innerHTML = '';
+    candidates.forEach((c) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="table">テーブル${escapeHtml(c.tableNumber)}</span><span>${escapeHtml(c.name)} さん</span>`;
+      listEl.appendChild(li);
+    });
+
+    document.getElementById('draw-phase-candidates').classList.remove('hidden');
+    document.getElementById('draw-phase-roulette').classList.add('hidden');
+    document.getElementById('draw-phase-winner').classList.add('hidden');
+    overlay.classList.remove('hidden');
   } catch {
     winnerMessage.textContent = '正解の設定または抽選に失敗しました。';
     winnerMessage.classList.add('error');
   }
 }
 
-async function drawRoulette() {
-  const display = document.getElementById('roulette-display');
-  const winnerMessage = document.getElementById('winner-message');
-  const btn = document.getElementById('draw-btn');
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
 
-  winnerMessage.textContent = '';
-  winnerMessage.classList.remove('error', 'highlight');
+function startDrawRouletteAnimation() {
+  if (!lastDrawData) return;
+  const { candidates, winnerIndex } = lastDrawData;
+  const overlay = document.getElementById('draw-overlay');
+  const phaseCandidates = document.getElementById('draw-phase-candidates');
+  const phaseRoulette = document.getElementById('draw-phase-roulette');
+  const phaseWinner = document.getElementById('draw-phase-winner');
+  const rouletteNameEl = document.getElementById('draw-roulette-name');
+  const winnerNameEl = document.getElementById('draw-winner-name');
 
-  btn.disabled = true;
-  display.textContent = '抽選中...';
+  phaseCandidates.classList.add('hidden');
+  phaseRoulette.classList.remove('hidden');
+  phaseWinner.classList.add('hidden');
 
-  try {
-    const res = await fetch('/api/draw', { method: 'POST', credentials: 'include' });
-    const data = await res.json();
-    if (!res.ok) {
-      display.textContent = '抽選に失敗しました。';
-      winnerMessage.textContent = data.error || '正解者がいない可能性があります。';
-      winnerMessage.classList.add('error');
-      btn.disabled = false;
-      return;
-    }
+  let index = 0;
+  const totalDuration = 4200;
+  const start = performance.now();
 
-    const candidates = data.candidates || [];
-    const winnerIndex = data.winnerIndex;
+  function step(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / totalDuration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const interval = 50 + eased * 350;
 
-    if (!candidates.length) {
-      display.textContent = '正解者がいません。';
-      btn.disabled = false;
-      return;
-    }
+    index = (index + 1) % candidates.length;
+    const current = candidates[index];
+    rouletteNameEl.textContent = `テーブル${current.tableNumber}：${current.name} さん`;
+    rouletteNameEl.classList.toggle('highlight-flash', true);
+    setTimeout(() => rouletteNameEl.classList.remove('highlight-flash'), 120);
 
-    // ルーレット風アニメーション
-    let index = 0;
-    let interval = 70;
-    const totalDuration = 3500;
-    const start = performance.now();
+    if (progress < 1) {
+      setTimeout(() => requestAnimationFrame(step), Math.max(40, Math.round(interval)));
+    } else {
+      const winner = candidates[winnerIndex];
+      rouletteNameEl.textContent = `テーブル${winner.tableNumber}：${winner.name} さん`;
+      rouletteNameEl.classList.add('highlight-flash');
+      setTimeout(function () {
+        phaseRoulette.classList.add('hidden');
+        winnerNameEl.textContent = `テーブル${winner.tableNumber}　${winner.name} さん`;
+        phaseWinner.classList.remove('hidden');
 
-    function step(now) {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / totalDuration, 1);
-
-      // 速度を徐々に落とす
-      const eased = 1 - Math.pow(1 - progress, 3);
-      interval = 60 + eased * 260; // 60ms → 320ms くらいに減速
-
-      index = (index + 1) % candidates.length;
-      const current = candidates[index];
-      display.textContent = `テーブル${current.tableNumber}：${current.name} さん`;
-
-      if (progress < 1) {
-        setTimeout(() => requestAnimationFrame(step), interval);
-      } else {
-        // 最終的に winnerIndex に合わせる
-        const winner = candidates[winnerIndex];
-        display.textContent = `テーブル${winner.tableNumber}：${winner.name} さん`;
-        winnerMessage.textContent = `当選者：テーブル${winner.tableNumber} ${winner.name} さん`;
+        var display = document.getElementById('roulette-display');
+        var winnerMessage = document.getElementById('winner-message');
+        display.textContent = 'テーブル' + winner.tableNumber + '：' + winner.name + ' さん';
+        winnerMessage.textContent = '当選者：テーブル' + winner.tableNumber + ' ' + winner.name + ' さん';
         winnerMessage.classList.add('highlight');
-        btn.disabled = false;
-      }
+        document.getElementById('draw-btn').disabled = false;
+      }, 500);
     }
-
-    requestAnimationFrame(step);
-  } catch {
-    display.textContent = '抽選に失敗しました。';
-    winnerMessage.textContent = 'サーバーとの通信に失敗しました。';
-    winnerMessage.classList.add('error');
-    btn.disabled = false;
   }
+
+  requestAnimationFrame(step);
+}
+
+function closeDrawOverlay() {
+  document.getElementById('draw-overlay').classList.add('hidden');
+  document.getElementById('draw-phase-candidates').classList.remove('hidden');
+  document.getElementById('draw-phase-roulette').classList.add('hidden');
+  document.getElementById('draw-phase-winner').classList.add('hidden');
+  lastDrawData = null;
+}
+
+function drawRoulette() {
+  revealAndDraw();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -396,6 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reload-responses-btn').addEventListener('click', loadResponses);
   document.getElementById('reload-correct-btn').addEventListener('click', loadCorrect);
   document.getElementById('draw-btn').addEventListener('click', revealAndDraw);
+
+  document.getElementById('draw-start-btn').addEventListener('click', startDrawRouletteAnimation);
+  document.getElementById('draw-close-btn').addEventListener('click', closeDrawOverlay);
 
   loadConfig();
   loadResponses();
